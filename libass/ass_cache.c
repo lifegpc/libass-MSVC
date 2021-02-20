@@ -99,7 +99,7 @@ const CacheDesc bitmap_cache_desc = {
 
 
 // composite cache
-static uint32_t composite_hash(void *key, uint32_t hval)
+static uint64_t composite_hash(void *key, uint64_t hval)
 {
     CompositeHashKey *k = key;
     hval = filter_hash(&k->filter, hval);
@@ -166,7 +166,7 @@ const CacheDesc composite_cache_desc = {
 
 
 // outline cache
-static uint32_t outline_hash(void *key, uint32_t hval)
+static uint64_t outline_hash(void *key, uint64_t hval)
 {
     OutlineHashKey *k = key;
     switch (k->type) {
