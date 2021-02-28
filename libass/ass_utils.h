@@ -180,10 +180,10 @@ static inline int double_to_d22(double x)
     return lrint(x * 0x400000);
 }
 
-#define FNV1_32A_INIT 0x811c9dc5U
+#define ASS_HASH_INIT 0x811c9dc5U
 #define FNV1_32A_PRIME 16777619U
 
-static inline uint32_t fnv_32a_buf(const void *buf, size_t len, uint32_t hval)
+static inline uint32_t ass_hash_buf(const void *buf, size_t len, uint32_t hval)
 {
     if (!len)
         return hval;

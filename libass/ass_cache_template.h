@@ -36,9 +36,9 @@
     { \
         struct structname *p = buf;
 #define GENERIC(type, member) \
-        hval = fnv_32a_buf(&p->member, sizeof(p->member), hval);
+        hval = ass_hash_buf(&p->member, sizeof(p->member), hval);
 #define STRING(member) \
-        hval = fnv_32a_buf(p->member.str, p->member.len, hval);
+        hval = ass_hash_buf(p->member.str, p->member.len, hval);
 #define VECTOR(member) GENERIC(, member.x); GENERIC(, member.y);
 #define END(typedefname) \
         return hval; \

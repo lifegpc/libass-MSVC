@@ -342,7 +342,7 @@ void *ass_cache_get(Cache *cache, void *key, void *priv)
 {
     const CacheDesc *desc = cache->desc;
     size_t key_offs = CACHE_ITEM_SIZE + align_cache(desc->value_size);
-    unsigned bucket = desc->hash_func(key, FNV1_32A_INIT) % cache->buckets;
+    unsigned bucket = desc->hash_func(key, ASS_HASH_INIT) % cache->buckets;
     CacheItem *item = cache->map[bucket];
     while (item) {
         if (desc->compare_func(key, (char *) item + key_offs)) {
