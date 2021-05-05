@@ -104,7 +104,11 @@ int numpad2align(int val);
 unsigned ass_utf8_get_char(const char **str);
 unsigned ass_utf8_put_char(char *dest, uint32_t ch);
 void ass_utf16be_to_utf8(char *dst, size_t dst_size, const uint8_t *src, size_t src_size);
-void ass_msg(ASS_Library *priv, int lvl, const char *fmt, ...);
+void ass_msg(ASS_Library *priv, int lvl, const char *fmt, ...)
+#ifdef __GNUC__
+    __attribute__ ((format (printf, 3, 4)))
+#endif
+;
 int lookup_style(ASS_Track *track, const char *name);
 ASS_Style *lookup_style_strict(ASS_Track *track, const char *name, size_t len);
 
