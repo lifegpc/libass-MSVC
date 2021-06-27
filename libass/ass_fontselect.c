@@ -31,7 +31,11 @@
 #include <limits.h>
 #include <ft2build.h>
 #include <sys/types.h>
+#ifndef _MSC_VER
 #include <dirent.h>
+#else
+#include <windows.h>
+#endif
 #include FT_FREETYPE_H
 #include FT_SFNT_NAMES_H
 #include FT_TRUETYPE_IDS_H
@@ -165,6 +169,7 @@ static ASS_FontProviderFuncs ft_funcs = {
 
 static void load_fonts_from_dir(ASS_Library *library, const char *dir)
 {
+#ifndef _MSC_VER
     DIR *d = opendir(dir);
     if (!d)
         return;
@@ -185,6 +190,24 @@ static void load_fonts_from_dir(ASS_Library *library, const char *dir)
         }
     }
     closedir(d);
+#else
+    WIN32_FIND_DATAA fdata;
+    HANDLE hFind;
+    hFind = FindFirstFileA(dir, &fdata);
+    if (hFind == INVALID_HANDLE_VALUE) return;
+    do {
+        char fullname[4096];
+        snprintf(fullname, sizeof(fullname), "%s/%s", dir, fdata.cFileName);
+        size_t bufsize = 0;
+        ass_msg(library, MSGL_INFO, "Loading font file '%s'", fullname);
+        void *data = read_file(library, fullname, &bufsize);
+        if (data) {
+            ass_add_font(library, fdata.cFileName, data, bufsize);
+            free(data);
+        }
+    } while (FindNextFileA(hFind, &fdata) != 0);
+    FindClose(hFind);
+#endif
 }
 
 /**

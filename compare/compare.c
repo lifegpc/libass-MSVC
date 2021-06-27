@@ -20,7 +20,13 @@
 #include "../libass/ass.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifndef _MSC_VER
 #include <dirent.h>
+#else
+#include <windows.h>
+#include <direct.h>
+#define strdup _strdup
+#endif
 #include <string.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -483,6 +489,7 @@ static bool add_img_item(ItemList *list, const char *dir, const char *file, size
 
 static bool process_input(ItemList *list, const char *path, ASS_Library *lib)
 {
+#ifndef _MSC_VER
     DIR *dir = opendir(path);
     if (!dir) {
         printf("Cannot open input directory '%s'!\n", path);
@@ -491,6 +498,17 @@ static bool process_input(ItemList *list, const char *path, ASS_Library *lib)
     struct dirent *file;
     while ((file = readdir(dir))) {
         const char *name = file->d_name;
+#else
+    WIN32_FIND_DATAA fdata;
+    HANDLE hFind;
+    hFind = FindFirstFileA(path, &fdata);
+    if (hFind == INVALID_HANDLE_VALUE) {
+        printf("Cannot open input directory '%s'!\n", path);
+        return false;
+    }
+    do {
+        const char* name = fdata.cFileName;
+#endif
         if (name[0] == '.')
             continue;
         const char *ext = strrchr(name + 1, '.');
@@ -525,26 +543,32 @@ static bool process_input(ItemList *list, const char *path, ASS_Library *lib)
         } else {
             continue;
         }
+#ifndef _MSC_VER
         closedir(dir);
         return false;
     }
     closedir(dir);
+#else
+        FindClose(hFind);
+        return false;
+    } while (FindNextFileA(hFind, &fdata) != 0);
+#endif
     return true;
 }
 
 
 enum {
-    OUTPUT, SCALE, LEVEL, INPUT
+    OUTPUT, SCALE, LEVEL, ASS_INPUT
 };
 
 static int *parse_cmdline(int argc, char *argv[])
 {
-    int *pos = calloc(INPUT + argc, sizeof(int));
+    int *pos = calloc(ASS_INPUT + argc, sizeof(int));
     if (!pos) {
         out_of_memory();
         return NULL;
     }
-    int input = INPUT;
+    int input = ASS_INPUT;
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] != '-') {
             pos[input++] = i;
@@ -562,7 +586,7 @@ static int *parse_cmdline(int argc, char *argv[])
             goto fail;
         pos[index] = i;
     }
-    if (pos[INPUT])
+    if (pos[ASS_INPUT])
         return pos;
 
 fail:
@@ -635,7 +659,7 @@ int main(int argc, char *argv[])
     ass_set_message_cb(lib, msg_callback, NULL);
     ass_set_extract_fonts(lib, true);
 
-    for (int *input = pos + INPUT; *input; input++) {
+    for (int *input = pos + ASS_INPUT; *input; input++) {
         if (!process_input(&list, argv[*input], lib))
             goto end;
     }
