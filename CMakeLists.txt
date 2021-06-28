@@ -15,6 +15,7 @@ option(ENABLE_ASM "Enable ASM." ON)
 option(BUILD_ASM_ON_X86_64 "Use x86_64 rather than x86 when using ASM" ON)
 option(ENABLE_TEST "enable test program (requires libpng)" ON)
 option(ENABLE_COMPARE "enable compare program (requires libpng)" ON)
+option(ENABLE_PROFILE "enable profiling program" OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -183,7 +184,7 @@ if (NOT CMAKE_INSTALL_BINDIR)
     set(CMAKE_INSTALL_BINDIR bin)
 endif()
 
-configure_file(libass.pc.in libass.pc)
+configure_file(libass.pc.in libass.pc @ONLY)
 
 install(TARGETS ${TARGETS}
 LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -196,7 +197,7 @@ endif()
 install(FILES ${PUBLIC_HEADERS} TYPE INCLUDE)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libass.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
-if (ENABLE_TEST OR ENABLE_COMPARE)
+if (ENABLE_TEST OR ENABLE_COMPARE OR ENABLE_PROFILE)
     if (BUILD_SHARED_LIBS)
         set(LINK_TARGET libass)
     else()
@@ -214,4 +215,9 @@ if (ENABLE_COMPARE AND PNG_FOUND)
     add_executable(compare compare/image.h compare/image.c compare/compare.c)
     target_link_libraries(compare ${LINK_TARGET})
     target_link_libraries(compare PNG::PNG)
+endif()
+
+if (ENABLE_PROFILE)
+    add_executable(profile profile/profile.c)
+    target_link_libraries(profile ${LINK_TARGET})
 endif()
